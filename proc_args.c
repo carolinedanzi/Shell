@@ -91,12 +91,12 @@ void main(int argc, char* argv[]){
 	
 	// Allocate memory for args_for_cmds
 	int j;
-	args_for_cmds = (char***)malloc(cmd_cnt * sizeof(char**));
+	args_for_cmds = malloc(cmd_cnt * sizeof(char**));
 	
 	for(i = 0; i < cmd_cnt; i++) {
-		args_for_cmds[i] = (char**)malloc(10 * sizeof(char*));
+		args_for_cmds[i] = malloc(10 * sizeof(char*));
 		for(j = 0; j < MAX_ARG_CNT; j++) {
-			args_for_cmds[i][j] = (char*)malloc(20 * sizeof(char));
+			args_for_cmds[i][j] = malloc(20 * sizeof(char));
 		}
 	}
 	
@@ -105,35 +105,15 @@ void main(int argc, char* argv[]){
 		printf("%d ", i);
 		while(cmd_args[i][argCount][0] != (char)0) {
 			printf("%s\n", cmd_args[i][argCount]);
-			strcpy(args_for_cmds[i][argCount], cmd_args[i][argCount]);
+			//strcpy(args_for_cmds[i][argCount], cmd_args[i][argCount]);
+			printf("Made it past line %d", argCount);
 			argCount++;
 		}
 		// Add null back in and reset argCount 
-		args_for_cmds[i][argCount][0] = (char)0;
+		//args_for_cmds[i][argCount][0] = (char)0;
 		argCount = 0;
 		printf("Made it to the end of the loop\n");
 	}
-	
-	/*//Todo create pipes
-	for(i = 0; i < cmd_cnt; i++) {
-		pipe(pipeFD[i]);
-	}
-
-	//fork a child process for each cmd
-	for( i = 0; i < cmd_cnt; i++ ){
-		pid = fork(  );
-		if( pid == 0 ){
-			exec_cmd_pipe(*cmds[i], *cmd_args[i], pipeFD[i]);
-		}else{
-			child_pid[i] = pid;
-		}
-	}
-
-
-	for( i = 0 ; i < cmd_cnt; i++){
-		//pid = wait(child_pid[i]);
-		printf("Child process %d is done\n", pid);
-	}*/
 
 	/*
 	int fd[2];
@@ -150,14 +130,16 @@ void main(int argc, char* argv[]){
 	int pid2 = fork();
 	if(pid2 == 0) {
 		dup2(fd[0], 0);
-		dup2(fd[1], 1);
+		//dup2(fd[1], 1);
 		close(fd[0]);
-		close(fd[1]);
+		//close(fd[1]);
 		execvp(cmds[1], args_for_cmds[0]);
 	}
 	wait(0);
 	wait(0);
 	*/
+	
+	
 	//test
 	// cnt is one less than you think it is - cnt represents the index
 	for(i = 0 ; i <= cmd_cnt ; i++ ){
@@ -172,26 +154,16 @@ void main(int argc, char* argv[]){
 	printf("%s\n", cmds[0]);	
 	printf("%s\n", cmd_args[0][0]);
 	printf("%s\n", cmd_args[0][1]);
-	//execvp(cmds[0], args_for_cmds[0]);
+	
+	char** newargs = malloc(sizeof(char*) * 20);
+	for(int i = 0; i < 3; i++) {
+		newargs[i] = malloc(sizeof(char) * 10);
+	}
+	strcpy(newargs[0], "ls");
+	strcpy(newargs[1], "-l");
+	newargs[2] = NULL;
+	execvp(cmds[0], newargs);
+	free(newargs);
+	free(args_for_cmds);
 	//exec_cmd_pipe(cmds[0], cmd_args[0], fd);
 }
- 
- /* G
- int fd[2];
- pipe(fd);
- pid_t pid = fork();
- if(pid) {
-	 wait(i(int*)NULL);
- } else {
-	 dup2(fd[1], 1);
-	 close(fd[1]);
-	 execvp(...,...);
- }
- dup2(fd[0]);
- close(fd[0]);
- execvp(...,...);
- }
- }
- */
-
-
