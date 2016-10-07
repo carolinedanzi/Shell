@@ -69,12 +69,45 @@ int  process_args( char *argv, char prog[MAX_CMD_CNT][MAX_CMD_LEN], char cmd_arg
   return cmd_idx;
 }
 
-void exec_cmd_pipe(char* cmd, char* args[], int fd[]) {
-	// redirect output
-	//dup2(fd[1], 1);
-	// redirect input
-	//dup2(fd[0], 0);
-	execvp(cmd, args);
+/*
+* Takes in a command from user
+* Puts command and arguments in a char*** array
+*/
+void readLineAndProcessArgs(char*** execvp_args) {
+	printf("Made it here!");
+	// Read in a line of input 
+	char* input = NULL;
+	size_t bufSize = 0;
+	int numChars = getline(&input, &bufSize, stdin);
+	
+	// Tokenize the string based on " " (code from Dr. Yue) 
+	char* token = strtok(input, " ");
+	
+	// Put command in first
+	strcpy(execvp_args[0][0], token);
+	token = strtok(NULL, " ");
+	// Put in its argument
+	strcpy(execvp_args[0][1], token);
+	execvp_args[0][2] = NULL;
+	token = strtok(NULL, " ");
+	// Skip the pipe
+	token = strtok(NULL, " ");
+	strcpy(execvp_args[1][0], token);
+	token = strtok(NULL, " ");
+	strcpy(execvp_args[1][1], token);
+	execvp_args[1][2] = NULL;
+	
+	printf("Done with process args");
+	
+	
+	// Help from https://www.tutorialspoint.com/c_standard_library/c_function_strtok.htm
+	// loop through tokens
+   /*while( token != NULL ) 
+   {
+      printf( " %s\n", token );
+    
+      token = strtok(NULL, " ");
+   }	*/
 }
 
 void main(int argc, char* argv[]){
@@ -85,38 +118,19 @@ void main(int argc, char* argv[]){
 
 	cmd_cnt = process_args( inputs, cmds, cmd_args);
 	
-	// Convert cmd_args to char*** rather than set size 
-	char*** args_for_cmds;
-	int argCount = 0;
-	
-	// Allocate memory for args_for_cmds
-	int j;
-	args_for_cmds = malloc(cmd_cnt * sizeof(char**));
-	
-	for(i = 0; i < cmd_cnt; i++) {
-		args_for_cmds[i] = malloc(10 * sizeof(char*));
-		for(j = 0; j < MAX_ARG_CNT; j++) {
-			args_for_cmds[i][j] = malloc(20 * sizeof(char));
+	char*** execvp_args = malloc(2 * sizeof(char**));
+	execvp_args[0] = malloc(3 * sizeof(char*));
+	execvp_args[1] = malloc(3 * sizeof(char*));
+	for(int i = 0; i < 2; i++) {
+		for(int j = 0; j < 3; j++) {
+			execvp_args[i][j] = malloc(20 * sizeof(char));
 		}
 	}
-	
-	// Loop through all commands
-	for(i = 0; i <= cmd_cnt; i++) {
-		printf("%d ", i);
-		while(cmd_args[i][argCount][0] != (char)0) {
-			printf("%s\n", cmd_args[i][argCount]);
-			//strcpy(args_for_cmds[i][argCount], cmd_args[i][argCount]);
-			printf("Made it past line %d", argCount);
-			argCount++;
-		}
-		// Add null back in and reset argCount 
-		//args_for_cmds[i][argCount][0] = (char)0;
-		argCount = 0;
-		printf("Made it to the end of the loop\n");
-	}
+	readLineAndProcessArgs(execvp_args);
+	execvp(cmds[1], execvp_args[1]);
 
-	/*
-	int fd[2];
+	
+	/*int fd[2];
 	pipe(fd);
 
 	// Piping
@@ -124,32 +138,23 @@ void main(int argc, char* argv[]){
 	if(pid1 == 0) {
 		dup2(fd[1], 1);
 		close(fd[1]);
-		execvp(cmds[0], args_for_cmds[0]);
+		execvp(cmds[0], execvp_args[0]);
 	}
 	
 	int pid2 = fork();
 	if(pid2 == 0) {
 		dup2(fd[0], 0);
-		//dup2(fd[1], 1);
+		dup2(fd[1], 1);
 		close(fd[0]);
-		//close(fd[1]);
-		execvp(cmds[1], args_for_cmds[0]);
+		close(fd[1]);
+		execvp(cmds[1], execvp_args[1]);
 	}
 	wait(0);
-	wait(0);
-	*/
+	wait(0);*/
 	
 	
-	//test
-	// cnt is one less than you think it is - cnt represents the index
-	for(i = 0 ; i <= cmd_cnt ; i++ ){
-		printf("The %dth cmd is %s   ",i,cmds[i]);
-		printf(" args: ");
-		for( int j = 0; cmd_args[i][j][0] != 0; j++) {
-			printf(" %s ",cmd_args[i][j]);
-		}
-		printf("\n");
-	}
+	/*
+	execvp(cmds[0], execvp_args[0]);
 	
 	printf("%s\n", cmds[0]);	
 	printf("%s\n", cmd_args[0][0]);
@@ -163,7 +168,11 @@ void main(int argc, char* argv[]){
 	strcpy(newargs[1], "-l");
 	newargs[2] = NULL;
 	execvp(cmds[0], newargs);
+	
+	
 	free(newargs);
-	free(args_for_cmds);
+	free(execvp_args);
 	//exec_cmd_pipe(cmds[0], cmd_args[0], fd);
+	*/
 }
+
